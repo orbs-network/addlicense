@@ -8,7 +8,7 @@ to any file that already has one.
 
 ## install
 
-    go get -u github.com/google/addlicense
+    go get -u github.com/orbs-network/addlicense
 
 ## usage
 
@@ -26,4 +26,4 @@ to single files.
 
 Apache 2.0
 
-This is not an official Google product.
+This is not an official Google product (forked from https://github.com/google/addlicense).
