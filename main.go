@@ -28,6 +28,7 @@ import (
 	"strings"
 	"sync"
 	"time"
+	"path"
 )
 
 const helpText = `Usage: addlicense [flags] pattern [pattern ...]
@@ -119,15 +120,18 @@ type file struct {
 }
 
 func walk(ch chan<- *file, start string) {
-	filepath.Walk(start, func(path string, fi os.FileInfo, err error) error {
+	filepath.Walk(start, func(p string, fi os.FileInfo, err error) error {
 		if err != nil {
-			log.Printf("%s error: %v", path, err)
+			log.Printf("%s error: %v", p, err)
 			return nil
+		}
+		if path.Base(p) == "vendor" {
+			return fmt.Errorf("will not go into vendor folders: %s", p)
 		}
 		if fi.IsDir() {
 			return nil
 		}
-		ch <- &file{path, fi.Mode()}
+		ch <- &file{p, fi.Mode()}
 		return nil
 	})
 }
@@ -140,11 +144,11 @@ func addLicense(path string, fmode os.FileMode, tmpl *template.Template, data *c
 		return nil
 	case ".c", ".h":
 		lic, err = prefix(tmpl, data, "/*", " * ", " */")
-	case ".js", ".jsx", ".tsx", ".css", ".tf":
+	case ".js", ".ts", ".jsx", ".tsx", ".css", ".tf":
 		lic, err = prefix(tmpl, data, "/**", " * ", " */")
 	case ".cc", ".cpp", ".cs", ".go", ".hh", ".hpp", ".java", ".m", ".mm", ".proto", ".rs", ".scala", ".swift", ".dart", ".groovy":
 		lic, err = prefix(tmpl, data, "", "// ", "")
-	case ".py", ".sh", ".yaml", ".yml", ".dockerfile", "dockerfile", ".rb", "gemfile":
+	case ".py", ".rb", "gemfile":
 		lic, err = prefix(tmpl, data, "", "# ", "")
 	case ".el", ".lisp":
 		lic, err = prefix(tmpl, data, "", ";; ", "")
@@ -152,8 +156,6 @@ func addLicense(path string, fmode os.FileMode, tmpl *template.Template, data *c
 		lic, err = prefix(tmpl, data, "", "% ", "")
 	case ".hs", ".sql":
 		lic, err = prefix(tmpl, data, "", "-- ", "")
-	case ".html", ".xml":
-		lic, err = prefix(tmpl, data, "<!--", " ", "-->")
 	case ".php":
 		lic, err = prefix(tmpl, data, "<?php", "// ", "?>")
 	}
