@@ -126,10 +126,10 @@ func walk(ch chan<- *file, start string) {
 			return nil
 		}
 		if path.Base(p) == "vendor" {
-			return fmt.Errorf("will not go into vendor folders: %s", p)
+			return filepath.SkipDir
 		}
 		if path.Base(p) == "node_modules" {
-			return fmt.Errorf("will not go into node_modules folders: %s", p)
+			return filepath.SkipDir
 		}
 		if fi.IsDir() {
 			return nil
